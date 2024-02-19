@@ -1,11 +1,9 @@
 import csv
 import uuid
-import json
 
 
 def parse_into_json():
     """Parses the CSV into a JSON document"""
-
     # Open the file and open a dictionary reader
     try:
         with open("./transaction_data.csv") as file:
@@ -16,13 +14,21 @@ def parse_into_json():
 
             for line in csvreader:
                 random_id = str(uuid.uuid1())
-                transaction_dict[random_id] = line
-            
-            return json.dumps(transaction_dict)
-    
+                transaction_dict[random_id] = dict()
+                for key in line.keys():
+                    transaction_dict[random_id][key] = line[key]
+
+            return transaction_dict
+
     # Handle the exception here
     except Exception as e:
         print(f"Error: {e}")
+"""
+Testing Locally Instructions
+----------------------------
+1. Change ""./transaction_data.csv" to "server/transaction_data.csv"
+
+"""
 
 """
 Data Format in JSON
