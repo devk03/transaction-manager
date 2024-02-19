@@ -54,7 +54,7 @@ def check_balance():
     return {"message": "Check the Balance."}
 
 
-@app.route("/populate_data/", methods=["GET"])
+@app.route("/populate_data/", methods=["POST"])
 def populate_data():
     """Parse the CSV data and populate the database with the data."""
     try:
@@ -64,8 +64,11 @@ def populate_data():
         return "Error"
     else:
         for key in data.keys():
-            print(key)
-            print(data[key])
+            # Print statements for debugging
+            # print(key)
+            # print(data[key])
+
+            # Create a transaction object
             one_transaction = transactions(
                 transaction_id=key,
                 transaction_date=data[key]["Date"],
@@ -77,10 +80,12 @@ def populate_data():
                 card_type=data[key]["Card Type"],
                 transaction_type=data[key]["Transaction Type"],
             )
+
             # Add the transaction (one specific table) to the database
             db.session.add(one_transaction)
             db.session.commit()
-        return jsonify(parse_into_json())
+
+        return {"message": "Data populated"}
 
 
 @app.route("/metrics/vendor/", methods=["Get"])
@@ -91,6 +96,7 @@ def vendor_metrics():
 @app.cli.command("init-db")
 def init_db_command():
     """Create the database tables. ONLY RAN ONCE. DO NOT RUN AGAIN"""
+    # flask --app server init-db (to run this command)
     print("Creating the database tables...")
     db.create_all()
     print("Database tables created.")
