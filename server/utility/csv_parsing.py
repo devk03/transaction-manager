@@ -25,7 +25,7 @@ def parse_into_json():
         print(f"Error: {e}")
 
 """
-Data Format
+Data Format in JSON
 {
   "67042a6e-cece-11ee-a9e7-4eea7e608d3a": {
     "Date": "1/21/24",
