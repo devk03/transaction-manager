@@ -18,6 +18,30 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 """
+Todos before interview:
+
+Query by 
+    Employee
+        By Name
+    Transactions
+        By Data
+        By Card
+        By Amount
+
+Find Recurring Transactions
+
+Card Balances Table?
+    Ex. amex, mastercard, etc. all have balances
+    Make payments feature
+    Payments table
+        Query Payments by data
+
+Post transactions
+
+WRITE CLEAN CODE!!!!!
+"""
+
+"""
 DEFINING DB SCHEMA -> UPDATING PSQL DB
 ---------------------------------------
 $ flask db init -> creates migration repository.
