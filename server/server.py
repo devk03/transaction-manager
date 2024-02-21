@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -7,23 +7,39 @@ from sqlalchemy.dialects.postgresql import UUID
 from flask_migrate import Migrate
 import uuid
 
-# Create a Flask application
+### Create a Flask application
 app = Flask(__name__)
 
-# Database Configuration
+### Database Configuration
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://[usename]:[password]@localhost:5432/[db_name]"
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://devk:root@localhost:5432/ramp"
-
 db = SQLAlchemy(app)
-
 migrate = Migrate(app, db)
-"""
 
+"""
+DEFINING DB SCHEMA -> UPDATING PSQL DB
+---------------------------------------
 $ flask db init -> creates migration repository.
 $ rm -r migrations/ -> deleting the migrations directory
 $ flask db migrate -m "Initial migration" -> You can then generate an initial migration:
 $ flask db upgrade -> applys the changes made
+"""
+
+"""
+Recieving Flask Requests
+------------------------
+For URL query parameters, use request.args.
+
+search = request.args.get("search")
+page = request.args.get("page")
+For posted form input, use request.form.
+
+email = request.form.get('email')
+password = request.form.get('password')
+For JSON posted with content type application/json, use request.get_json().
+
+data = request.get_json()
 """
 
 
@@ -51,9 +67,9 @@ class Employee(db.Model):
     email = db.Column(db.String(255), nullable=False)
 
 
-@app.route("/", methods=["GET"])
-def hello_world():
-    return {"message": "Hello World"}
+# @app.route("/", methods=["GET"])
+# def hello_world():
+#     return {"message": "Hello World"}
 
 
 @app.route("/query_employee/<string:name>", methods=["GET"])
@@ -64,21 +80,63 @@ def query_employee(name):
     return "transactions"
 
 
-@app.route("/query_transactions/", methods=["GET"])
-def query():
-    query_results = transactions.query.all()
-    print(query_results)
-    return "transactions"
+@app.route("/employee/create", methods=["POST"])
+def create_employee():
+    """Creating a unique employee and posting them to the database."""
+
+    # HTTP Request Information Transfer
+    email = request.headers.get("email")
+    first_name = request.form.get("First Name")
+    last_name = request.form.get("Last Name")
+    years_of_exp = request.form.get("Years of Experience")
+
+    # ERROR HANDLING -> Form + Header Data
+    if not all([email, first_name, last_name, years_of_exp]):
+        return make_response(jsonify({"error", "missing data"}), 400)
+    try:
+        years_of_exp = int(years_of_exp)
+        if years_of_exp < 0:
+            raise ValueError("Years of Experience must be above 0")
+    except Exception as error:
+        return make_response(jsonify({"error", error}), 400)
+
+    # DB-TRANSACTION -> Posting Employee to DB
+    new_employee = Employee(
+        employee_name=f"{first_name} {last_name}",
+        years_of_experience=years_of_exp,
+        email=email,
+    )
+    try:
+        # making the db commit
+        db.session.add(new_employee)
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()  # Roll back in case the db-transaction fails
+        return make_response(jsonify({"error", error}), 400)
+
+    return make_response(jsonify({"message", "employee created succesfully"}), 201)
 
 
-@app.route("/make_payment/", methods=["GET"])
-def make_payment():
-    return {"message": "Make a payment."}
+# @app.route("/query_transactions/", methods=["GET"])
+# def query():
+#     query_results = transactions.query.all()
+#     print(query_results)
+#     return "transactions"
 
 
-@app.route("/check_balance/", methods=["GET"])
-def check_balance():
-    return {"message": "Check the Balance."}
+# @app.route("/make_payment/", methods=["GET"])
+# def make_payment():
+#     return {"message": "Make a payment."}
+
+
+# @app.route("/check_balance/", methods=["GET"])
+# def check_balance():
+#     return {"message": "Check the Balance."}
+
+
+# @app.route("/metrics/vendor/", methods=["Get"])
+# def vendor_metrics():
+#     return {"message", "apply csv data"}
 
 
 @app.route("/populate_data/", methods=["POST"])
@@ -113,11 +171,6 @@ def populate_data():
             db.session.commit()
 
         return {"message": "Data populated"}
-
-
-@app.route("/metrics/vendor/", methods=["Get"])
-def vendor_metrics():
-    return {"message", "apply csv data"}
 
 
 @app.cli.command("init-db")
