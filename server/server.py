@@ -18,27 +18,34 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 """
+Completed:
+
+    - Setup PSQL Database (Transactions Table, Employees)
+    - Setup Flask Backend
+    - Employees
+        Created post employees route
+
 Todos before interview:
 
-Query by 
-    Employee
-        By Name
-    Transactions
-        By Data
-        By Card
-        By Amount
+    - Query by 
+        Employee
+            By Name
+        Transactions
+            By Data
+            By Card
+            By Amount
 
-Find Recurring Transactions
+    - Find Recurring Transactions
 
-Card Balances Table?
-    Ex. amex, mastercard, etc. all have balances
-    Make payments feature
-    Payments table
-        Query Payments by data
+    - Card Balances Table?
+        Ex. amex, mastercard, etc. all have balances
+        Make payments feature
+        Payments table
+            Query Payments by data
 
-Post transactions
+    - Post transactions
 
-WRITE CLEAN CODE!!!!!
+GOAL: WRITE CLEAN CODE!!!!!
 """
 
 """
@@ -54,15 +61,14 @@ $ flask db upgrade -> applys the changes made
 Recieving Flask Requests
 ------------------------
 For URL query parameters, use request.args.
-
 search = request.args.get("search")
 page = request.args.get("page")
+---
 For posted form input, use request.form.
-
 email = request.form.get('email')
 password = request.form.get('password')
+---
 For JSON posted with content type application/json, use request.get_json().
-
 data = request.get_json()
 """
 
