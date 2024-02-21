@@ -4,6 +4,7 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from utility.csv_parsing import parse_into_json
 from sqlalchemy.dialects.postgresql import UUID
+from flask_migrate import Migrate
 import uuid
 
 # Create a Flask application
@@ -16,6 +17,15 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://devk:root@localhost:5432/r
 
 db = SQLAlchemy(app)
 
+migrate = Migrate(app, db)
+"""
+
+$ flask db init -> creates migration repository.
+$ rm -r migrations/ -> deleting the migrations directory
+$ flask db migrate -m "Initial migration" -> You can then generate an initial migration:
+$ flask db upgrade -> applys the changes made
+"""
+
 
 class transactions(db.Model):
     __tablename__ = "transactions"
@@ -25,16 +35,33 @@ class transactions(db.Model):
     transaction_date = db.Column(db.Date, nullable=False)
     transaction_time = db.Column(db.Time, nullable=False)
     vendor = db.Column(db.String(255), nullable=False)
-    employee_name = db.Column(db.String(255), nullable=False)
+    employee_name = db.Column(
+        db.String(255), db.ForeignKey("employee.employee_name"), nullable=False
+    )
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     location = db.Column(db.Text, nullable=False)
     card_type = db.Column(db.String(50), nullable=False)
     transaction_type = db.Column(db.String(50), nullable=False)
 
 
+class Employee(db.Model):
+    __tablename__ = "employee"
+    employee_name = db.Column(db.String(255), primary_key=True, unique=True)
+    years_of_experience = db.Column(db.Integer, nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+
+
 @app.route("/", methods=["GET"])
 def hello_world():
     return {"message": "Hello World"}
+
+
+@app.route("/query_employee/<string:name>", methods=["GET"])
+def query_employee(name):
+    """Query the database for a specific employee."""
+    query_results = transactions.query.filter_by(employee_name=name).all()
+    print(query_results)
+    return "transactions"
 
 
 @app.route("/query_transactions/", methods=["GET"])
