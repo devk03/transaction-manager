@@ -24,7 +24,9 @@ class transactions(db.Model):
     )
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     location = db.Column(db.Text, nullable=False)
-    card_type = db.Column(db.String(50), nullable=False)
+    card_type = db.Column(
+        db.String(50), db.ForeignKey("card.card_type"), nullable=False
+    )
     transaction_type = db.Column(db.String(50), nullable=False)
 
 
@@ -41,6 +43,6 @@ class Employee(db.Model):
 
 class Card(db.Model):
     __tablename__ = "card"
-    card_name = db.Column(db.String(255), primary_key=True, nullable=False)
+    card_type = db.Column(db.String(50), primary_key=True, nullable=False)
     balance = db.Column(db.Numeric(10, 2), nullable=False)
     interest_rate = db.Column(db.Numeric(10, 2), nullable=False)

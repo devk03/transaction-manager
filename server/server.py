@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, abort, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,7 +30,7 @@ Completed:
             By Name -> @app.route("/employee/<string:name>", methods=["GET"])
 
 Todos before interview:
-
+    - Post transactions
     - Query by 
         Transactions
             @app.route("/transaction/", methods=["GET"])
@@ -42,12 +42,11 @@ Todos before interview:
 
     - Card Balances Table?
         Ex. amex, mastercard, etc. all have balances
-        Make payments feature
-        Payments table
-            Query Payments by data
+        Payment to pay balance
 
-    - Post transactions
-
+    - Find some string parsing problem
+    - Review csv parsing
+    
 GOAL: WRITE CLEAN CODE!!!!!
 """
 
@@ -75,6 +74,47 @@ For JSON posted with content type application/json, use request.get_json().
 data = request.get_json()
 """
 
+"""
+Different ways to pull request data
+-----------------------------------
+request.data -> raw data
+request.headers.get('key') -> Get a header
+request.get_json() -> Parse JSON data from request
+request.form.get('key') -> From Form
+request.args.get('query') -> Access single query parameter
+------------------------------
+@app.route('/user/<username>')
+def show_user_profile(username):
+    # The function parameter "username" captures the value from the URL
+---------------------------------------
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    uploaded_file = request.files['file']  # Access uploaded file
+    # Process the file
+"""
+
+
+@app.route("/transaction/", methods=["POST", "GET"])
+def transaction():
+    request_type = request.method
+    match request_type:
+        case "POST":
+            vendor = request.form.get("vendor")
+            employee_first_name = request.form.get("first_name")
+            employee_last_name = request.form.get("last_name")
+            amount = request.form.get("amount")
+            location = request.form.get("amount")
+            card_type = request.form.get("card_type")
+            transaction_type = request.form.get("transaction_type")
+            # FINISH THIS
+            return make_response(
+                jsonify({"message": "Transaction Posted Successfully"}, 200)
+            )
+        case "GET":
+            return make_response(
+                jsonify({"message": "Transactions Queried Successfully"}, 200)
+            )
+
 
 @app.route("/employee/<string:name>", methods=["GET"])
 def query_employee(name):
@@ -97,7 +137,7 @@ def query_employee(name):
     return make_response(employees_dict, 200)
 
 
-@app.route("/employee/create", methods=["POST"])
+@app.route("/employee/create/", methods=["POST"])
 def create_employee():
     """Creating a unique employee and posting them to the database."""
 
