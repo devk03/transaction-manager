@@ -3,18 +3,19 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from utility.csv_parsing import parse_into_json
+import utility.sql_queries
 from sqlalchemy.dialects.postgresql import UUID
 from flask_migrate import Migrate
-import uuid
+from models import Employee, transactions, db
+
 
 ### Create a Flask application
 app = Flask(__name__)
 
-### Database Configuration
-
 # app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://[usename]:[password]@localhost:5432/[db_name]"
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://devk:root@localhost:5432/ramp"
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
 """
@@ -32,8 +33,10 @@ Todos before interview:
 
     - Query by 
         Transactions
-            By Date -> @app.route("/transaction/", methods=["GET"])
-                    -> 
+            @app.route("/transaction/", methods=["GET"])
+                -> Date
+                -> Vendor
+                -> Employee Name -> Id
 
     - Find Recurring Transactions
 
@@ -73,37 +76,6 @@ data = request.get_json()
 """
 
 
-class transactions(db.Model):
-    __tablename__ = "transactions"
-    transaction_id = db.Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True
-    )
-    transaction_date = db.Column(db.Date, nullable=False)
-    transaction_time = db.Column(db.Time, nullable=False)
-    vendor = db.Column(db.String(255), nullable=False)
-    employee_id = db.Column(
-        UUID(as_uuid=True),
-        db.ForeignKey("employee.employee_id"),
-        default=uuid.uuid4,
-        nullable=False,
-    )
-    amount = db.Column(db.Numeric(10, 2), nullable=False)
-    location = db.Column(db.Text, nullable=False)
-    card_type = db.Column(db.String(50), nullable=False)
-    transaction_type = db.Column(db.String(50), nullable=False)
-
-
-class Employee(db.Model):
-    __tablename__ = "employee"
-    employee_id = db.Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True
-    )
-    first_name = db.Column(db.String(255), nullable=False)
-    last_name = db.Column(db.String(255), nullable=False)
-    years_of_experience = db.Column(db.Integer, nullable=False)
-    email = db.Column(db.String(255), nullable=False)
-
-
 @app.route("/employee/<string:name>", methods=["GET"])
 def query_employee(name):
     """Query the database for a specific employee."""
@@ -117,8 +89,8 @@ def query_employee(name):
     for employee in total_results:
         employee_id_str = str(employee.employee_id)
         employees_dict[employee_id_str] = {
-            "First Name": employee.first_name,
-            "Last Name": employee.last_name,
+            "First_Name": employee.first_name,
+            "Last_Name": employee.last_name,
             "Email": employee.email,
             "Experience": employee.years_of_experience,
         }
