@@ -24,16 +24,16 @@ Completed:
     - Setup Flask Backend
     - Employees
         Created post employees route
+    - Query by 
+        Employee
+            By Name -> @app.route("/employee/<string:name>", methods=["GET"])
 
 Todos before interview:
 
     - Query by 
-        Employee
-            By Name
         Transactions
-            By Data
-            By Card
-            By Amount
+            By Date -> @app.route("/transaction/", methods=["GET"])
+                    -> 
 
     - Find Recurring Transactions
 
@@ -51,8 +51,8 @@ GOAL: WRITE CLEAN CODE!!!!!
 """
 DEFINING DB SCHEMA -> UPDATING PSQL DB
 ---------------------------------------
-$ flask db init -> creates migration repository.
 $ rm -r migrations/ -> deleting the migrations directory
+$ flask db init -> creates migration repository.
 $ flask db migrate -m "Initial migration" -> You can then generate an initial migration:
 $ flask db upgrade -> applys the changes made
 """
@@ -81,8 +81,11 @@ class transactions(db.Model):
     transaction_date = db.Column(db.Date, nullable=False)
     transaction_time = db.Column(db.Time, nullable=False)
     vendor = db.Column(db.String(255), nullable=False)
-    employee_name = db.Column(
-        db.String(255), db.ForeignKey("employee.employee_name"), nullable=False
+    employee_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey("employee.employee_id"),
+        default=uuid.uuid4,
+        nullable=False,
     )
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     location = db.Column(db.Text, nullable=False)
@@ -92,22 +95,34 @@ class transactions(db.Model):
 
 class Employee(db.Model):
     __tablename__ = "employee"
-    employee_name = db.Column(db.String(255), primary_key=True, unique=True)
+    employee_id = db.Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True
+    )
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
     years_of_experience = db.Column(db.Integer, nullable=False)
     email = db.Column(db.String(255), nullable=False)
 
 
-# @app.route("/", methods=["GET"])
-# def hello_world():
-#     return {"message": "Hello World"}
-
-
-@app.route("/query_employee/<string:name>", methods=["GET"])
+@app.route("/employee/<string:name>", methods=["GET"])
 def query_employee(name):
     """Query the database for a specific employee."""
-    query_results = transactions.query.filter_by(employee_name=name).all()
-    print(query_results)
-    return "transactions"
+    # Data Cleanup
+    name = name.lower()
+    first_name_results = Employee.query.filter_by(first_name=name).all()
+    last_name_results = Employee.query.filter_by(last_name=name).all()
+
+    total_results = set(first_name_results).union(set(last_name_results))
+    employees_dict = dict()
+    for employee in total_results:
+        employee_id_str = str(employee.employee_id)
+        employees_dict[employee_id_str] = {
+            "First Name": employee.first_name,
+            "Last Name": employee.last_name,
+            "Email": employee.email,
+            "Experience": employee.years_of_experience,
+        }
+    return make_response(employees_dict, 200)
 
 
 @app.route("/employee/create", methods=["POST"])
@@ -122,17 +137,23 @@ def create_employee():
 
     # ERROR HANDLING -> Form + Header Data
     if not all([email, first_name, last_name, years_of_exp]):
-        return make_response(jsonify({"error", "missing data"}), 400)
-    try:
+        return make_response(jsonify({"error": "missing data"}), 400)
+    try:  # Check years of experience
         years_of_exp = int(years_of_exp)
         if years_of_exp < 0:
             raise ValueError("Years of Experience must be above 0")
     except Exception as error:
-        return make_response(jsonify({"error", error}), 400)
+        return make_response(jsonify({"error": error}), 400)
+
+    # Data Clean Up
+    first_name = first_name.lower()
+    last_name = last_name.lower()
+    email = email.lower()
 
     # DB-TRANSACTION -> Posting Employee to DB
     new_employee = Employee(
-        employee_name=f"{first_name} {last_name}",
+        first_name=first_name,
+        last_name=last_name,
         years_of_experience=years_of_exp,
         email=email,
     )
@@ -142,31 +163,9 @@ def create_employee():
         db.session.commit()
     except Exception as error:
         db.session.rollback()  # Roll back in case the db-transaction fails
-        return make_response(jsonify({"error", error}), 400)
+        return make_response(jsonify({"error": error}), 400)
 
-    return make_response(jsonify({"message", "employee created succesfully"}), 201)
-
-
-# @app.route("/query_transactions/", methods=["GET"])
-# def query():
-#     query_results = transactions.query.all()
-#     print(query_results)
-#     return "transactions"
-
-
-# @app.route("/make_payment/", methods=["GET"])
-# def make_payment():
-#     return {"message": "Make a payment."}
-
-
-# @app.route("/check_balance/", methods=["GET"])
-# def check_balance():
-#     return {"message": "Check the Balance."}
-
-
-# @app.route("/metrics/vendor/", methods=["Get"])
-# def vendor_metrics():
-#     return {"message", "apply csv data"}
+    return make_response(jsonify({"message": "employee created succesfully"}), 201)
 
 
 @app.route("/populate_data/", methods=["POST"])
