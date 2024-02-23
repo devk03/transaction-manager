@@ -38,7 +38,10 @@ class Animal:
 
     # Destructor
     def __del__(self):
-        self.kill()
+        try:
+            self.kill()
+        except Exception as error:
+            print(error)
 
     def the_color(self):
         """Returns the value of the enumerated class"""
@@ -46,6 +49,8 @@ class Animal:
 
     def kill(self):
         """Kills the animal :D"""
+        if not self.alive:
+            raise Exception("<Error>" + self.name + " is already dead.")
         self.alive = False
         print(self.name + " has been killed :(")
 
@@ -66,5 +71,5 @@ dog = Animal("steve", "dog", Size.LARGE, Color.BLACK)
 print(dog.the_color())
 dog.what_am_i()
 dog.is_alive()
-dog.kill()
+# dog.kill()
 dog.what_am_i()
