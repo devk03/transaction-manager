@@ -1,16 +1,14 @@
 import csv  # import the csv module
 
+# Reading the csv as lists
 filename = "sample.csv"
-
 fields = []
 rows = []
-
-# reading as lists
 try:
-    with open(filename, "r") as csvfile:
-        csvreader = csv.reader(csvfile)
-        fields = next(csvreader)
-        for row in csvreader:
+    with open(filename, "r") as csvfile: # Open the file
+        csvreader = csv.reader(csvfile) # Create CSV reader object
+        fields = next(csvreader) # Read the first row from the iterator
+        for row in csvreader: # Read remaining rows
             rows.append(row)
 except Exception as error:
     print(error)
