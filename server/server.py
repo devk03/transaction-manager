@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from utility.csv_parsing import parse_into_json
-# import utility.sql_queries
+from utility.sql_queries import post_transaction
 from sqlalchemy.dialects.postgresql import UUID
 from flask_migrate import Migrate
 from models import Employee, transactions, db
@@ -103,10 +103,23 @@ def transaction():
             employee_first_name = request.form.get("first_name")
             employee_last_name = request.form.get("last_name")
             amount = request.form.get("amount")
-            location = request.form.get("amount")
+            location = request.form.get("location")
             card_type = request.form.get("card_type")
             transaction_type = request.form.get("transaction_type")
             # FINISH THIS
+            transaction_dict = {
+                "vendor":vendor,
+                "first_name":employee_first_name,
+                "last_name":employee_last_name,
+                "amount":amount,
+                "location":location,
+                "card_type":card_type,
+                "transaction_type":transaction_type,
+            }
+            try:
+                post_transaction(transaction_dict)
+            except Exception as error:
+                return make_response(jsonify({"error": error}), 400)
             return make_response(
                 jsonify({"message": "Transaction Posted Successfully"}, 200)
             )
