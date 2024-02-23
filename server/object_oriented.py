@@ -73,3 +73,10 @@ dog.what_am_i()
 dog.is_alive()
 # dog.kill()
 dog.what_am_i()
+
+"""
+>>> How to use lambdas
+    is_even = lambda x: x % 2 == 0
+    print(is_even(4))  # Output: True
+    print(is_even(5))  # Output: False
+"""
