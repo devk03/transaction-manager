@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from utility.csv_parsing import parse_into_json
-import utility.sql_queries
+# import utility.sql_queries
 from sqlalchemy.dialects.postgresql import UUID
 from flask_migrate import Migrate
 from models import Employee, transactions, db
@@ -46,7 +46,7 @@ Todos before interview:
 
     - Find some string parsing problem
     - Review csv parsing
-    
+
 GOAL: WRITE CLEAN CODE!!!!!
 """
 
